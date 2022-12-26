@@ -24,7 +24,7 @@ func NewScheduler(cfg *config.Config, uc *currency.UseCase) *Scheduler {
 
 func (s *Scheduler) Start() {
 	if err := s.scheduler.AddFunc("@hourly", s.UpdatePairs); err != nil {
-		log.Fatalf("[CRON ERROR]: %s", err.Error())
+		log.Fatalf("[WHILE CRON START ERROR]: %s", err.Error())
 	}
 }
 

@@ -22,7 +22,6 @@ func NewHandler(app *fiber.App, db *sqlx.DB, uc v1.UseCase, cfg *config.Config) 
 
 func (h Handler) InitRoutes() {
 	api := h.fiber.Group("api")
-
 	h.InitAPIV1(api)
 }
 
