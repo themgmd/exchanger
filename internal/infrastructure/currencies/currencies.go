@@ -18,7 +18,7 @@ func FetchCurrency(cfg *config.Config, baseCur, convCur string) (Response, error
 	url := fmt.Sprintf("%s?apikey=%s&base_currency=%s&currencies=%s", cfg.API.Link, cfg.API.Key, baseCur, convCur)
 	req, err := http.Get(url)
 	if err != nil {
-		log.Printf("[Fetch Currency]: %s\n", err.Error())
+		log.Printf("[While Fetch Currency Error occured]: %s\n", err.Error())
 		return resp, err
 	}
 
