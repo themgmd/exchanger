@@ -21,8 +21,7 @@ func NewHandler(app *fiber.App, db *sqlx.DB, uc v1.UseCase, cfg *config.Config) 
 }
 
 func (h Handler) InitRoutes() {
-	h.fiber.Get("/ping", h.pingPong)
-	api := h.fiber.Group("api/currency")
+	api := h.fiber.Group("api")
 
 	h.InitAPIV1(api)
 }
@@ -30,9 +29,10 @@ func (h Handler) InitRoutes() {
 func (h Handler) InitAPIV1(router fiber.Router) {
 	handlerV1 := v1.NewApiV1Handler(h.uc, h.cfg)
 
-	router.Post("", handlerV1.CreatePairs)
-	router.Put("", handlerV1.Exchange)
-	router.Get("", handlerV1.Aggregate)
+	router.Get("/ping", h.pingPong)
+	router.Post("/currency", handlerV1.CreatePairs)
+	router.Put("/currency", handlerV1.Exchange)
+	router.Get("/currency", handlerV1.Aggregate)
 }
 
 func (h Handler) pingPong(ctx *fiber.Ctx) error {
