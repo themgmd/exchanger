@@ -1,33 +1,31 @@
 package server
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
-	"github.com/onemgvv/exchanger/internal/config"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
+	"onemgvv/exchanger/internal/logger/zaplog"
 )
 
 type Server struct {
 	fiber *fiber.App
-	cfg   *config.Config
 }
 
-func NewServer(app *fiber.App, cfg *config.Config) *Server {
-	return &Server{fiber: app, cfg: cfg}
+func New(fiber *fiber.App) *Server {
+	return &Server{fiber}
 }
 
-func (s *Server) Run() error {
+func (s Server) Run(ctx context.Context, port string) error {
 	go func() {
-		if err := s.fiber.Listen(":" + s.cfg.HTTP.Port); err != nil {
-			log.Fatalf("while fiber listen occured: %s", err.Error())
+		if err := s.fiber.Listen(":" + port); err != nil {
+			zaplog.HttpLogger.Fatalf("[FIBER | LISTEN ERROR]: %+v", err)
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, os.Interrupt, syscall.SIGINT)
-	<-quit
+	<-ctx.Done()
+	zaplog.HttpLogger.Info("http server is stopped")
+	return s.Stop()
+}
 
+func (s Server) Stop() error {
 	return s.fiber.Shutdown()
 }
