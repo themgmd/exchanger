@@ -3,19 +3,14 @@ package config
 import (
 	"github.com/spf13/viper"
 	"os"
+	"time"
 )
 
 const (
+	FolderPath          = "configs"
 	defaultHTTPPort     = "5023"
 	defaultPostgresPort = "5432"
 	defaultPostgresHost = "localhost"
-)
-
-type Mode string
-
-const (
-	DEVELOPMENT Mode = "development"
-	PRODUCTION  Mode = "production"
 )
 
 type (
@@ -26,7 +21,13 @@ type (
 	}
 
 	HTTPConfig struct {
-		Port string `mapstructure:"port"`
+		Port    string        `mapstructure:"port"`
+		Timeout TimeoutConfig `mapstructure:"timeout"`
+	}
+
+	TimeoutConfig struct {
+		Read  time.Duration `mapstructure:"read"`
+		Write time.Duration `mapstructure:"write"`
 	}
 
 	APIConfig struct {
@@ -48,10 +49,10 @@ type (
 	}
 )
 
-func New(cfgDir string, mode Mode) (*Config, error) {
+func New(cfgFile string) (*Config, error) {
 	setupDefaultValues()
 
-	if err := parseConfigFile(cfgDir, mode); err != nil {
+	if err := parseConfigFile(cfgFile); err != nil {
 		return nil, err
 	}
 
@@ -65,9 +66,9 @@ func New(cfgDir string, mode Mode) (*Config, error) {
 	return &cfg, nil
 }
 
-func parseConfigFile(folder string, mode Mode) error {
-	viper.AddConfigPath(folder)
-	viper.SetConfigName(string(mode))
+func parseConfigFile(file string) error {
+	viper.AddConfigPath(FolderPath)
+	viper.SetConfigName(file)
 
 	if err := viper.ReadInConfig(); err != nil {
 		return err
