@@ -1,0 +1,13 @@
+http:
+  port: 5020
+
+api:
+  link: https://api.freecurrencyapi.com/v1/latest
+
+database:
+  postgres:
+    host: 109.68.213.121
+    port: 5432
+    user: admin
+    dbName: exchanger
+    sslMode: disable

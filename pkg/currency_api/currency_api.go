@@ -1,21 +1,25 @@
-package currencies
+package currency_api
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/onemgvv/exchanger/internal/config"
 	"io"
 	"log"
 	"net/http"
 )
 
+type APIConfig struct {
+	Link string
+	Key  string
+}
+
 type Response struct {
 	Data map[string]float64 `json:"data"`
 }
 
-func FetchCurrency(cfg *config.Config, baseCur, convCur string) (Response, error) {
+func FetchCurrency(cfg APIConfig, baseCur, convCur string) (Response, error) {
 	var resp Response
-	url := fmt.Sprintf("%s?apikey=%s&base_currency=%s&currencies=%s", cfg.API.Link, cfg.API.Key, baseCur, convCur)
+	url := fmt.Sprintf("%s?apikey=%s&base_currency=%s&currencies=%s", cfg.Link, cfg.Key, baseCur, convCur)
 	req, err := http.Get(url)
 	if err != nil {
 		log.Printf("[While Fetch Currency Error occured]: %s\n", err.Error())

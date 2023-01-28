@@ -1,6 +1,6 @@
-package response
+package http
 
-import "github.com/onemgvv/exchanger/internal/domain/entity"
+import "exchanger/internal/models"
 
 type PingPongResponse struct {
 	Timestamp string `json:"timestamp"`
@@ -12,13 +12,17 @@ type DefaultHttpResponse struct {
 	Comment string `json:"comment"`
 }
 
+type GetRateResponse struct {
+	DefaultHttpResponse
+	Rate models.CurrencyPair `json:"rate"`
+}
+
 type ExchangeResponse struct {
 	DefaultHttpResponse
-	entity.CurrencyPairParams
 	Result float64 `json:"result"`
 }
 
 type AggregateResponse struct {
 	DefaultHttpResponse
-	Data []entity.CurrencyPairParams
+	Data []models.CurrencyPair `json:"rates"`
 }
