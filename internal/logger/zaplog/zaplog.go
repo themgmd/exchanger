@@ -6,11 +6,8 @@ import (
 )
 
 var (
-	//appPath  = "/var/log/healfy_backend/app.log"
-	//httpPath = "/var/log/healfy_backend/http.log"
-
-	appPath  = "logs/app.log"
-	httpPath = "logs/http.log"
+	appPath  = "/var/log/healfy_backend/app.log"
+	httpPath = "/var/log/healfy_backend/http.log"
 
 	AppLogger  = New(appPath)
 	HttpLogger = New(httpPath)

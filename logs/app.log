@@ -1,2 +1,0 @@
-2023-01-28T14:24:14.455+0300	FATAL	core/core.go:55	Error occured while init configuration
-2023-01-28T14:25:00.846+0300	FATAL	core/core.go:55	Error occured while init configuration: Config File "dev.yml" Not Found in "[/Users/magomed/Development/Projects/exchanger/configs]"
