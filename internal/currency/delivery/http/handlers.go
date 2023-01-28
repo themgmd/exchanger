@@ -2,12 +2,13 @@ package http
 
 import (
 	"context"
+	"exchanger/internal/config"
+	"exchanger/internal/currency"
+	"exchanger/internal/models"
+	currencyApi "exchanger/pkg/currency_api"
+	"exchanger/pkg/utils"
 	"github.com/gofiber/fiber/v2"
-	"onemgvv/exchanger/internal/config"
-	"onemgvv/exchanger/internal/currency"
-	"onemgvv/exchanger/internal/models"
-	currencyApi "onemgvv/exchanger/pkg/currency_api"
-	"onemgvv/exchanger/pkg/utils"
+	"strings"
 )
 
 type handlers struct {
@@ -31,6 +32,9 @@ func (h handlers) CreatePairs(ctx *fiber.Ctx) error {
 		respBody.Comment = err.Error()
 		return ctx.Status(fiber.StatusBadRequest).JSON(respBody)
 	}
+
+	dto.CurrencyFrom = strings.ToUpper(dto.CurrencyFrom)
+	dto.CurrencyTo = strings.ToUpper(dto.CurrencyTo)
 
 	// Prepare config to fetch currency rates
 	apiConfig := currencyApi.APIConfig{Link: h.cfg.API.Link, Key: h.cfg.API.Key}
@@ -67,6 +71,9 @@ func (h handlers) Exchange(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(respBody)
 	}
 
+	dto.CurrencyFrom = strings.ToUpper(dto.CurrencyFrom)
+	dto.CurrencyTo = strings.ToUpper(dto.CurrencyTo)
+
 	// Prepare currencies to business layer
 	params := models.NewCurrencyParams(dto.CurrencyFrom, dto.CurrencyTo)
 	result, err := h.uc.Exchange(h.ctx, *params, dto.Amount)
@@ -91,6 +98,9 @@ func (h handlers) GetRate(ctx *fiber.Ctx) error {
 		respBody.Comment = err.Error()
 		return ctx.Status(fiber.StatusBadRequest).JSON(respBody)
 	}
+
+	dto.CurrencyFrom = strings.ToUpper(dto.CurrencyFrom)
+	dto.CurrencyTo = strings.ToUpper(dto.CurrencyTo)
 
 	// Prepare currencies to business layer
 	params := models.NewCurrencyParams(dto.CurrencyFrom, dto.CurrencyTo)

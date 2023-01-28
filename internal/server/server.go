@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
+	"exchanger/internal/logger/zaplog"
 	"github.com/gofiber/fiber/v2"
-	"onemgvv/exchanger/internal/logger/zaplog"
 )
 
 type Server struct {

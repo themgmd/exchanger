@@ -3,18 +3,19 @@ package usecase
 import (
 	"context"
 	"errors"
+	"exchanger/internal/currency"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 )
 
 func (uc useCase) CreatePairs(ctx context.Context, params models.CurrencyParams, rate float64) error {
 	exists, err := uc.repo.CheckExist(ctx, params)
-	if err != nil {
+	if err != nil && !errors.Is(err, currency.ErrCurrencyPairNotExist) {
 		return fmt.Errorf(" uc.repo.CheckExist: %w", err)
 	}
 
 	if exists {
-		return errors.New("current currency pair already exist")
+		return currency.ErrCurrencyPairAlreadyExist
 	}
 
 	newPair := models.NewCurrencyPair(params.CurrencyFrom, params.CurrencyTo, rate)

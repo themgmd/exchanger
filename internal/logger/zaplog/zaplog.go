@@ -1,13 +1,16 @@
 package zaplog
 
 import (
+	"exchanger/pkg/logger"
 	"go.uber.org/zap"
-	"onemgvv/exchanger/pkg/logger"
 )
 
 var (
-	appPath  = "/var/log/healfy_backend/app.log"
-	httpPath = "/var/log/healfy_backend/http.log"
+	//appPath  = "/var/log/healfy_backend/app.log"
+	//httpPath = "/var/log/healfy_backend/http.log"
+
+	appPath  = "logs/app.log"
+	httpPath = "logs/http.log"
 
 	AppLogger  = New(appPath)
 	HttpLogger = New(httpPath)

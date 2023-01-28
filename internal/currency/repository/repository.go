@@ -2,17 +2,18 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"exchanger/internal/currency"
+	"exchanger/internal/models"
+	"exchanger/pkg/database/postgres"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"onemgvv/exchanger/internal/currency"
-	"onemgvv/exchanger/internal/models"
-	"onemgvv/exchanger/pkg/database/postgres"
 )
 
 const (
-	scheme      = "app"
-	table       = "user"
+	scheme      = "currencies"
+	table       = "courses"
 	tableScheme = scheme + "." + table
 )
 
@@ -89,7 +90,7 @@ func (r repository) CheckExist(ctx context.Context, params models.CurrencyParams
 	}
 
 	row := r.client.QueryRow(ctx, query, args...)
-	if err := row.Scan(&id); err != nil {
+	if err := row.Scan(&id); err != nil && errors.Is(err, sql.ErrNoRows) {
 		return false, fmt.Errorf(" r.client.Exec: %w", err)
 	}
 
@@ -97,7 +98,7 @@ func (r repository) CheckExist(ctx context.Context, params models.CurrencyParams
 		return true, nil
 	}
 
-	return false, errors.New("current pair not exists")
+	return false, currency.ErrCurrencyPairNotExist
 }
 
 func (r repository) GetRate(ctx context.Context, params models.CurrencyParams) (float64, error) {
@@ -127,14 +128,18 @@ func (r repository) Get(ctx context.Context, params models.CurrencyParams) (*mod
 	query, args, err := r.queryBuilder.
 		Select(columnCurrencyFrom, columnCurrencyTo, columnRate).
 		From(tableScheme).
+		Where(sq.Eq{
+			columnCurrencyFrom: params.CurrencyFrom,
+			columnCurrencyTo:   params.CurrencyTo,
+		}).
 		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("queryBuilder: %w", err)
 	}
 
 	row := r.client.QueryRow(ctx, query, args...)
-	if err := row.Scan(&model); err != nil {
-		return nil, fmt.Errorf(" r.client.Exec: %w", err)
+	if err := row.Scan(&model.CurrencyFrom, &model.CurrencyTo, &model.Rate); err != nil {
+		return nil, fmt.Errorf("r.client.QueryRow: %w", err)
 	}
 
 	return &model, nil
@@ -142,19 +147,19 @@ func (r repository) Get(ctx context.Context, params models.CurrencyParams) (*mod
 
 func (r repository) Select(ctx context.Context, limit, offset int) ([]models.CurrencyPair, error) {
 	var result []models.CurrencyPair
-	sql := r.queryBuilder.
+	sqlQuery := r.queryBuilder.
 		Select(columnCurrencyFrom, columnCurrencyTo, columnRate).
 		From(tableScheme)
 
 	if limit != 0 {
-		sql.Limit(uint64(limit))
+		sqlQuery = sqlQuery.Limit(uint64(limit))
 	}
 
 	if offset != 0 {
-		sql.Offset(uint64(offset))
+		sqlQuery = sqlQuery.Offset(uint64(offset))
 	}
 
-	query, args, err := sql.ToSql()
+	query, args, err := sqlQuery.ToSql()
 	if err != nil {
 		return result, fmt.Errorf("queryBuilder: %w", err)
 	}

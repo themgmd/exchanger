@@ -6,7 +6,7 @@ api:
 
 database:
   postgres:
-    host: localhost
+    host: 109.68.213.121
     port: 5432
     user: admin
     dbName: exchanger

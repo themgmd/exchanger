@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 	"time"
 )
 

@@ -1,4 +1,4 @@
-module onemgvv/exchanger
+module exchanger
 
 go 1.19
 

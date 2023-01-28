@@ -2,7 +2,7 @@ package currency
 
 import (
 	"context"
-	"onemgvv/exchanger/internal/models"
+	"exchanger/internal/models"
 )
 
 type UseCase interface {

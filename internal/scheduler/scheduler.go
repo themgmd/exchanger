@@ -2,12 +2,12 @@ package scheduler
 
 import (
 	"context"
+	"exchanger/internal/config"
+	"exchanger/internal/currency"
+	"exchanger/internal/models"
+	currencyApi "exchanger/pkg/currency_api"
 	"github.com/robfig/cron"
 	"log"
-	"onemgvv/exchanger/internal/config"
-	"onemgvv/exchanger/internal/currency"
-	"onemgvv/exchanger/internal/models"
-	currencyApi "onemgvv/exchanger/pkg/currency_api"
 	"time"
 )
 

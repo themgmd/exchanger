@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 	"errors"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 )
 
 func (uc useCase) GetFromInMemory(ctx context.Context, params models.CurrencyParams) (float64, error) {

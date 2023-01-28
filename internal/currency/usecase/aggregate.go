@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 )
 
 func (uc useCase) GetRate(ctx context.Context, params models.CurrencyParams) (*models.CurrencyPair, error) {

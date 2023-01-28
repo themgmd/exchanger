@@ -3,19 +3,20 @@ package usecase
 import (
 	"context"
 	"errors"
+	"exchanger/internal/currency"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 )
 
 func (uc useCase) Exchange(ctx context.Context, params models.CurrencyParams, amount float64) (float64, error) {
 	var rate float64
 	exists, err := uc.repo.CheckExist(ctx, params)
-	if err != nil {
+	if err != nil && !errors.Is(err, currency.ErrCurrencyPairNotExist) {
 		return 0, fmt.Errorf("uc.repo.CheckExist: %w", err)
 	}
 
-	if exists {
-		return 0, errors.New("current currency pair already exist")
+	if !exists {
+		return 0, currency.ErrCurrencyPairNotExist
 	}
 
 	rate, err = uc.GetFromInMemory(ctx, params)

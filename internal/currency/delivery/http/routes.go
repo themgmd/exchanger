@@ -1,8 +1,8 @@
 package http
 
 import (
+	"exchanger/internal/currency"
 	"github.com/gofiber/fiber/v2"
-	"onemgvv/exchanger/internal/currency"
 )
 
 func MapCurrencyHandlers(currencyHandlers fiber.Router, h currency.Handlers) {

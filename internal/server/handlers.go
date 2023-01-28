@@ -1,8 +1,8 @@
 package server
 
 import (
-	"onemgvv/exchanger/internal/currency"
-	"onemgvv/exchanger/internal/currency/delivery/http"
+	"exchanger/internal/currency"
+	"exchanger/internal/currency/delivery/http"
 )
 
 type Handlers struct {

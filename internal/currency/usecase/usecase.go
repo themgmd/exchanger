@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"onemgvv/exchanger/internal/currency"
+	"exchanger/internal/currency"
 )
 
 type useCase struct {

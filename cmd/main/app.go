@@ -1,10 +1,10 @@
 package main
 
 import (
+	"exchanger/internal/core"
+	"exchanger/internal/logger/zaplog"
 	"flag"
 	"github.com/joho/godotenv"
-	"onemgvv/exchanger/internal/core"
-	"onemgvv/exchanger/internal/logger/zaplog"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 
 func main() {
 	var configFileName string
-	flag.StringVar(&configFileName, "config", "dev.yml", "config yml file path")
+	flag.StringVar(&configFileName, "config", "dev", "config yml file path")
 	flag.Parse()
 
 	if err := godotenv.Load(ENV); err != nil {

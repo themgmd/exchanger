@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 	"errors"
+	"exchanger/internal/models"
 	"fmt"
-	"onemgvv/exchanger/internal/models"
 )
 
 func (uc useCase) UpdateRate(ctx context.Context, params models.CurrencyParams, rate float64) error {

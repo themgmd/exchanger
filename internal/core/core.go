@@ -3,18 +3,18 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"exchanger/internal/common/mappers"
+	"exchanger/internal/config"
+	"exchanger/internal/currency"
+	currencyHttp "exchanger/internal/currency/delivery/http"
+	"exchanger/internal/currency/repository"
+	currencyUseCase "exchanger/internal/currency/usecase"
+	"exchanger/internal/logger/zaplog"
+	"exchanger/internal/scheduler"
+	"exchanger/internal/server"
+	"exchanger/pkg/database/inmemory"
+	"exchanger/pkg/database/postgres"
 	"github.com/gofiber/fiber/v2"
-	"onemgvv/exchanger/internal/common/mappers"
-	"onemgvv/exchanger/internal/config"
-	"onemgvv/exchanger/internal/currency"
-	currencyHttp "onemgvv/exchanger/internal/currency/delivery/http"
-	"onemgvv/exchanger/internal/currency/repository"
-	currencyUseCase "onemgvv/exchanger/internal/currency/usecase"
-	"onemgvv/exchanger/internal/logger/zaplog"
-	"onemgvv/exchanger/internal/scheduler"
-	"onemgvv/exchanger/internal/server"
-	"onemgvv/exchanger/pkg/database/inmemory"
-	"onemgvv/exchanger/pkg/database/postgres"
 	"os/signal"
 	"syscall"
 	"time"
@@ -52,7 +52,7 @@ func initApiV1(currHandler currency.Handlers) server.Handlers {
 func New(configPath string) *Core {
 	cfg, err := config.New(configPath)
 	if err != nil {
-		zaplog.AppLogger.Fatalf("Error occured while init configuration")
+		zaplog.AppLogger.Fatalf("Error occured while init configuration: %v", err)
 	}
 
 	fiberConfig := fiber.Config{

@@ -1,6 +1,6 @@
 package http
 
-import "onemgvv/exchanger/internal/models"
+import "exchanger/internal/models"
 
 type PingPongResponse struct {
 	Timestamp string `json:"timestamp"`

@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS courses (
+CREATE SCHEMA currencies;
+
+CREATE TABLE IF NOT EXISTS currencies.courses (
     id serial primary key,
     currency_from text not null,
     currency_to text not null,
