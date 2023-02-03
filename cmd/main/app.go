@@ -7,13 +7,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const (
-	ENV = ".env"
-)
+const ENV = ".env"
+
+var configFileName string
+
+func init() {
+	flag.StringVar(&configFileName, "config", "dev", "config yml file path")
+}
 
 func main() {
-	var configFileName string
-	flag.StringVar(&configFileName, "config", "dev", "config yml file path")
 	flag.Parse()
 
 	if err := godotenv.Load(ENV); err != nil {

@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/spf13/viper"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -11,6 +12,11 @@ const (
 	defaultHTTPPort     = "5023"
 	defaultPostgresPort = "5432"
 	defaultPostgresHost = "localhost"
+)
+
+var (
+	once     sync.Once
+	instance Config
 )
 
 type (
@@ -50,20 +56,21 @@ type (
 )
 
 func New(cfgFile string) (*Config, error) {
-	setupDefaultValues()
+	var err error
+	once.Do(func() {
+		setupDefaultValues()
 
-	if err := parseConfigFile(cfgFile); err != nil {
-		return nil, err
-	}
+		if err = parseConfigFile(cfgFile); err != nil {
+			return
+		}
+		if err = unmarshall(&instance); err != nil {
+			return
+		}
 
-	var cfg Config
-	if err := unmarshall(&cfg); err != nil {
-		return nil, err
-	}
+		parseEnvFile(&instance)
+	})
 
-	parseEnvFile(&cfg)
-
-	return &cfg, nil
+	return &instance, nil
 }
 
 func parseConfigFile(file string) error {
