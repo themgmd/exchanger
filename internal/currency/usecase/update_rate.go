@@ -18,6 +18,7 @@ func (uc useCase) UpdateRate(ctx context.Context, params models.CurrencyParams, 
 	}
 
 	updatedPair := models.NewCurrencyPair(params.CurrencyFrom, params.CurrencyTo, rate)
+	uc.SaveInMemory(ctx, *updatedPair)
 	if err = uc.repo.Update(ctx, *updatedPair); err != nil {
 		return fmt.Errorf("uc.repo.Update: %w", err)
 	}

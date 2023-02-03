@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"exchanger/internal/common/response"
 	"exchanger/internal/config"
 	"exchanger/internal/currency"
 	"exchanger/internal/models"
@@ -24,7 +25,7 @@ func New(ctx context.Context, cfg *config.Config, uc currency.UseCase) currency.
 func (h handlers) CreatePairs(ctx *fiber.Ctx) error {
 	var (
 		dto      CurrencyPairsDTO
-		respBody DefaultHttpResponse
+		respBody response.DefaultHttpResponse
 	)
 
 	// Validate Request Body

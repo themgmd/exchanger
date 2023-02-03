@@ -90,7 +90,7 @@ func (r repository) CheckExist(ctx context.Context, params models.CurrencyParams
 	}
 
 	row := r.client.QueryRow(ctx, query, args...)
-	if err := row.Scan(&id); err != nil && errors.Is(err, sql.ErrNoRows) {
+	if err = row.Scan(&id); err != nil && errors.Is(err, sql.ErrNoRows) {
 		return false, fmt.Errorf(" r.client.Exec: %w", err)
 	}
 
@@ -116,7 +116,7 @@ func (r repository) GetRate(ctx context.Context, params models.CurrencyParams) (
 	}
 
 	row := r.client.QueryRow(ctx, query, args...)
-	if err := row.Scan(&rate); err != nil {
+	if err = row.Scan(&rate); err != nil {
 		return 0, fmt.Errorf(" r.client.Exec: %w", err)
 	}
 
@@ -138,7 +138,7 @@ func (r repository) Get(ctx context.Context, params models.CurrencyParams) (*mod
 	}
 
 	row := r.client.QueryRow(ctx, query, args...)
-	if err := row.Scan(&model.CurrencyFrom, &model.CurrencyTo, &model.Rate); err != nil {
+	if err = row.Scan(&model.CurrencyFrom, &model.CurrencyTo, &model.Rate); err != nil {
 		return nil, fmt.Errorf("r.client.QueryRow: %w", err)
 	}
 

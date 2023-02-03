@@ -1,28 +1,21 @@
 package http
 
-import "exchanger/internal/models"
-
-type PingPongResponse struct {
-	Timestamp string `json:"timestamp"`
-	Message   string `json:"message"`
-}
-
-type DefaultHttpResponse struct {
-	Success bool   `json:"success"`
-	Comment string `json:"comment"`
-}
+import (
+	"exchanger/internal/common/response"
+	"exchanger/internal/models"
+)
 
 type GetRateResponse struct {
-	DefaultHttpResponse
+	response.DefaultHttpResponse
 	Rate models.CurrencyPair `json:"rate"`
 }
 
 type ExchangeResponse struct {
-	DefaultHttpResponse
+	response.DefaultHttpResponse
 	Result float64 `json:"result"`
 }
 
 type AggregateResponse struct {
-	DefaultHttpResponse
+	response.DefaultHttpResponse
 	Data []models.CurrencyPair `json:"rates"`
 }
