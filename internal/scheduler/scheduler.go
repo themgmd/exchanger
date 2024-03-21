@@ -3,9 +3,9 @@ package scheduler
 import (
 	"context"
 	"exchanger/internal/config"
-	"exchanger/internal/currency"
+	"exchanger/internal/currency_d"
 	"exchanger/internal/models"
-	currencyApi "exchanger/pkg/currency_api"
+	currencyApi "exchanger/pkg/currencyapi"
 	"github.com/robfig/cron"
 	"log"
 	"time"
@@ -13,11 +13,11 @@ import (
 
 type Scheduler struct {
 	cfg       *config.Config
-	uc        currency.UseCase
+	uc        currency_d.UseCase
 	scheduler *cron.Cron
 }
 
-func NewScheduler(cfg *config.Config, uc currency.UseCase) *Scheduler {
+func NewScheduler(cfg *config.Config, uc currency_d.UseCase) *Scheduler {
 	localTime, _ := time.LoadLocation("Europe/Moscow")
 	scheduler := cron.NewWithLocation(localTime)
 	return &Scheduler{cfg, uc, scheduler}

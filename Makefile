@@ -1,10 +1,20 @@
-include .env
+.PHONY: install_tooling generate migration cover convey
 
-build:
-	go build -o .bin/main cmd/main/app.go
+install_tooling:
+	go install github.com/rubenv/sql-migrate/...@latest
+	go install github.com/smartystreets/goconvey@latest
 
-prod: build
-	./.bin/main -config stable
+generate:
+	go generate ./...
 
-dev:
-	go run cmd/main/app.go
+migration:
+	@read -p "Enter Migration Name:" migration_name; \
+	sql-migrate new --config=dbconfig.yml -env=exchanger $$migration_name
+
+cover:
+	go test -short -count=1 -race -coverprofile coverage.out ./internal/...
+	go tool cover -html coverage.out -o cover.html
+	rm coverage.out
+
+convey:
+	goconvey -excludedDirs=vendor -port 8090
