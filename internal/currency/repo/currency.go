@@ -21,7 +21,7 @@ func NewCurrency(db *postgre.DB) *Currency {
 }
 
 func (c Currency) Create(ctx context.Context, pair types.CurrencyPair) error {
-	query := `insert into cources (currency_from, currency_to, rate) values (:currency_from, :currency_to, :rate);`
+	query := `insert into courses (currency_from, currency_to, rate) values (:currency_from, :currency_to, :rate);`
 	args := postgre.Args{
 		"currency_from": pair.CurrencyFrom,
 		"currency_to":   pair.CurrencyTo,
@@ -45,7 +45,7 @@ func (c Currency) CheckExist(ctx context.Context, from, to string) error {
 			when count(*) > 0 then true
 			else false
 		end
-	from cources
+	from courses
 	where
 	    currency_from = :currency_from and
 	    currency_to = :currency_to
@@ -73,7 +73,7 @@ func (c Currency) Update(ctx context.Context, id int, update data.Json) error {
 
 	args := postgre.Args(update)
 
-	query := fmt.Sprintf(`update cources set %s where id = :id;`, args.String())
+	query := fmt.Sprintf(`update courses set %s where id = :id;`, args.String())
 	clear(args)
 
 	args["id"] = id
@@ -96,7 +96,7 @@ func (c Currency) Get(ctx context.Context, from, to string) (types.CurrencyPair,
 				currency_from,
 				currency_to,
 				rate
-			  from cources
+			  from courses
 			  where
 			    currency_from = :currency_from and
 			    currency_to = :currency_to
@@ -124,7 +124,7 @@ func (c Currency) GetById(ctx context.Context, id int) (types.CurrencyPair, erro
 				currency_from,
 				currency_to,
 				rate
-			  from cources
+			  from courses
 			  where
 			    id = :id
 			  ;
@@ -145,7 +145,7 @@ func (c Currency) GetRate(ctx context.Context, from, to string) (float64, error)
 
 	query := `select
 				rate
-			  from cources
+			  from courses
 			  where
 			    currency_from = :currency_from and
 			    currency_to = :currency_to
@@ -170,7 +170,7 @@ func (c Currency) List(ctx context.Context, limit, offset int) ([]types.Currency
 		eg, _ = errgroup.WithContext(ctx)
 	)
 
-	countQuery := `select count(*) from cources;`
+	countQuery := `select count(*) from courses;`
 	selectQuery := `select
 				id,
 				created_at,
@@ -178,7 +178,7 @@ func (c Currency) List(ctx context.Context, limit, offset int) ([]types.Currency
 				currency_from,
 				currency_to,
 				rate
-			  from cources
+			  from courses
 			  limit :limit
 			  offset :offset;
 	`

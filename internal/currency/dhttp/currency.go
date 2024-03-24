@@ -1,6 +1,8 @@
 package dhttp
 
-import "net/http"
+import (
+	"github.com/go-chi/chi/v5"
+)
 
 type Currency struct {
 	handler *Handler
@@ -12,7 +14,9 @@ func NewCurrency(service Service) *Currency {
 	}
 }
 
-func (c Currency) SetupRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /currency", nil)
-	mux.HandleFunc("GET /currency", nil)
+func (c Currency) SetupRoutes(router chi.Router) {
+	router.Post("/currency", c.handler.CreatePair)
+	router.Get("/currency", c.handler.List)
+	router.Post("/currency/rate", c.handler.Exchange)
+	router.Get("/currency/{currency}", c.handler.GetRate)
 }

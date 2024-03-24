@@ -1,9 +1,9 @@
 package http
 
 import (
+	"exchanger/pkg/errors"
+	"exchanger/pkg/pagination"
 	"github.com/goccy/go-json"
-	"gotemplate/pkg/errors"
-	"gotemplate/pkg/pagination"
 	"log/slog"
 	"net/http"
 )
@@ -91,7 +91,10 @@ func newErrorResponse(w http.ResponseWriter, statusCode int, err error) {
 		BaseResponse: BaseResponse{
 			Success: false,
 		},
-		Error: errors.Unwrap(err).Error(),
+	}
+
+	if err != nil {
+		response.Error = errors.Unwrap(err).Error()
 	}
 
 	respBytes, respErr := bytes(response)

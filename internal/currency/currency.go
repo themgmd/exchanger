@@ -3,8 +3,10 @@ package currency
 import (
 	"context"
 	"exchanger/internal/currency/types"
+	currencyApi "exchanger/pkg/currencyapi"
 	"exchanger/pkg/data"
 	"exchanger/pkg/errors"
+	"exchanger/pkg/pagination"
 	"fmt"
 	"time"
 )
@@ -25,47 +27,61 @@ type Cache interface {
 	Delete(key string)
 }
 
+type ExternalApi interface {
+	Latest(baseCur, convCur string) (currencyApi.Response, error)
+}
+
 type Currency struct {
 	repo  Repo
+	api   ExternalApi
 	cache Cache
 }
 
-func New(repo Repo, cache Cache) *Currency {
+func New(repo Repo, cache Cache, api ExternalApi) *Currency {
 	return &Currency{
 		repo:  repo,
+		api:   api,
 		cache: cache,
 	}
 }
 
-func (c Currency) CreatePairs(ctx context.Context, pair types.CurrencyPair) error {
+func (c Currency) CreatePair(ctx context.Context, from, to string) (types.CurrencyPair, error) {
+	pair := types.NewCurrencyPair(from, to, 0)
+
 	err := c.repo.CheckExist(ctx, pair.CurrencyFrom, pair.CurrencyTo)
 	if err != nil && !errors.Is(err, types.ErrCurrencyPairNotExist) {
-		return fmt.Errorf(" uc.repo.CheckExist: %w", err)
+		return types.CurrencyPair{}, errors.Wrap(err, "check exists currency pair")
 	}
 
 	if nil == err {
-		return types.ErrCurrencyPairAlreadyExist
+		return types.CurrencyPair{}, types.ErrCurrencyPairAlreadyExist
 	}
 
-	if err = c.repo.Create(ctx, pair); err != nil {
-		return fmt.Errorf("uc.repo.Insert: %w", err)
+	resp, err := c.api.Latest(pair.CurrencyFrom, pair.CurrencyTo)
+	if err != nil {
+		return types.CurrencyPair{}, errors.Wrap(err, "fetch course from api")
+	}
+
+	pair.Rate = resp.Data[pair.CurrencyTo]
+	if err = c.repo.Create(ctx, *pair); err != nil {
+		return types.CurrencyPair{}, errors.Wrap(err, "create currency pair")
 	}
 
 	key := fmt.Sprintf("%s:%s", pair.CurrencyFrom, pair.CurrencyTo)
 	c.cache.Put(key, pair.Rate, 1*time.Hour)
 
-	return nil
+	return *pair, nil
 }
 
 func (c Currency) Exchange(ctx context.Context, from, to string, amount float64) (float64, error) {
 	var rate float64
 	err := c.repo.CheckExist(ctx, from, to)
 	if err != nil && !errors.Is(err, types.ErrCurrencyPairNotExist) {
-		return 0, fmt.Errorf("uc.repo.CheckExist: %w", err)
+		return 0, errors.Wrap(err, "check currency pair in db")
 	}
 
-	if nil == err {
-		return 0, types.ErrCurrencyPairNotExist
+	if errors.Is(err, types.ErrCurrencyPairNotExist) {
+		return 0, err
 	}
 
 	key := fmt.Sprintf("%s:%s", from, to)
@@ -73,7 +89,7 @@ func (c Currency) Exchange(ctx context.Context, from, to string, amount float64)
 	if !ok {
 		rate, err = c.repo.GetRate(ctx, from, to)
 		if err != nil {
-			return 0, fmt.Errorf("uc.repo.GetRate: %w", err)
+			return 0, errors.Wrap(err, "get pair rate")
 		}
 	}
 
@@ -110,8 +126,8 @@ func (c Currency) GetRate(ctx context.Context, from, to string) (types.CurrencyP
 	return pair, nil
 }
 
-func (c Currency) List(ctx context.Context, limit, offset int) ([]types.CurrencyPair, int, error) {
-	pairs, total, err := c.repo.List(ctx, limit, offset)
+func (c Currency) List(ctx context.Context, pag pagination.Pagination) ([]types.CurrencyPair, int, error) {
+	pairs, total, err := c.repo.List(ctx, pag.Limit, pag.Offset)
 	if err != nil {
 		err = fmt.Errorf("uc.repo.Select: %s", err)
 		return pairs, 0, err

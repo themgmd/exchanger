@@ -51,7 +51,7 @@ func New(options ...Option) *CurrencyApi {
 	}
 }
 
-func (ca CurrencyApi) Fetch(baseCur, convCur string) (Response, error) {
+func (ca CurrencyApi) Latest(baseCur, convCur string) (Response, error) {
 	var resp Response
 	url := fmt.Sprintf("%s?apikey=%s&base_currency=%s&currencies=%s",
 		ca.options.Link, ca.options.Key, baseCur, convCur)

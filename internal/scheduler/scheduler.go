@@ -5,15 +5,17 @@ import (
 	"exchanger/internal/config"
 	"exchanger/internal/currency/types"
 	currencyApi "exchanger/pkg/currencyapi"
+	"exchanger/pkg/errors"
+	"exchanger/pkg/pagination"
 	"github.com/robfig/cron"
-	"log"
 	"log/slog"
+	"math"
 	"time"
 )
 
 type Currency interface {
 	UpdateRate(ctx context.Context, id int, rate float64) error
-	List(ctx context.Context, limit, offset int) ([]types.CurrencyPair, int, error)
+	List(ctx context.Context, pag pagination.Pagination) ([]types.CurrencyPair, int, error)
 }
 
 type Scheduler struct {
@@ -31,18 +33,24 @@ func NewScheduler(currency Currency) *Scheduler {
 	}
 }
 
-func (s *Scheduler) Start(ctx context.Context) {
-	if err := s.scheduler.AddFunc("@hourly", func() {
+func (s *Scheduler) Start(ctx context.Context) error {
+	err := s.scheduler.AddFunc("@hourly", func() {
 		s.UpdatePairs(ctx)
-	}); err != nil {
-		log.Fatalf("[WHILE CRON START ERROR]: %s", err.Error())
+	})
+	if err != nil {
+		return errors.Wrap(err, "cron start error")
 	}
+
+	return nil
 }
 
 func (s *Scheduler) UpdatePairs(ctx context.Context) {
-	pairs, _, err := s.currency.List(ctx, 0, 0)
+	pairs, _, err := s.currency.List(ctx, pagination.Pagination{
+		Limit:  math.MaxInt,
+		Offset: 0,
+	})
 	if err != nil {
-		log.Printf("Error occured while aggregate all pairs")
+		slog.Info("list pairs error", "error", err.Error())
 		return
 	}
 
@@ -54,7 +62,7 @@ func (s *Scheduler) UpdatePairs(ctx context.Context) {
 	)
 
 	for _, pair := range pairs {
-		resp, err := currApi.Fetch(pair.CurrencyFrom, pair.CurrencyTo)
+		resp, err := currApi.Latest(pair.CurrencyFrom, pair.CurrencyTo)
 		if err != nil {
 			slog.Error("fetch new currency pair rate",
 				"error", err.Error(),

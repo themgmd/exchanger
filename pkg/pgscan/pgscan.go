@@ -5,8 +5,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"runtimeback/pkg/errors"
-	"runtimeback/pkg/tx"
+	"exchanger/pkg/errors"
+	"exchanger/pkg/tx"
 )
 
 func Select(
