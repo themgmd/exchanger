@@ -3,24 +3,32 @@ package scheduler
 import (
 	"context"
 	"exchanger/internal/config"
-	"exchanger/internal/currency_d"
-	"exchanger/internal/models"
+	"exchanger/internal/currency/types"
 	currencyApi "exchanger/pkg/currencyapi"
 	"github.com/robfig/cron"
 	"log"
+	"log/slog"
 	"time"
 )
 
+type Currency interface {
+	UpdateRate(ctx context.Context, id int, rate float64) error
+	List(ctx context.Context, limit, offset int) ([]types.CurrencyPair, int, error)
+}
+
 type Scheduler struct {
-	cfg       *config.Config
-	uc        currency_d.UseCase
+	currency  Currency
 	scheduler *cron.Cron
 }
 
-func NewScheduler(cfg *config.Config, uc currency_d.UseCase) *Scheduler {
+func NewScheduler(currency Currency) *Scheduler {
 	localTime, _ := time.LoadLocation("Europe/Moscow")
 	scheduler := cron.NewWithLocation(localTime)
-	return &Scheduler{cfg, uc, scheduler}
+
+	return &Scheduler{
+		currency:  currency,
+		scheduler: scheduler,
+	}
 }
 
 func (s *Scheduler) Start(ctx context.Context) {
@@ -32,27 +40,41 @@ func (s *Scheduler) Start(ctx context.Context) {
 }
 
 func (s *Scheduler) UpdatePairs(ctx context.Context) {
-	pairs, err := s.uc.Aggregate(ctx, 0, 0)
+	pairs, _, err := s.currency.List(ctx, 0, 0)
 	if err != nil {
 		log.Printf("Error occured while aggregate all pairs")
 		return
 	}
 
-	apiConfig := currencyApi.APIConfig{
-		Link: s.cfg.API.Link,
-		Key:  s.cfg.API.Key,
-	}
+	conf := config.Get()
+
+	currApi := currencyApi.New(
+		currencyApi.Key(conf.CurrencyApi.Key),
+		currencyApi.Link(conf.CurrencyApi.Link),
+	)
 
 	for _, pair := range pairs {
-		resp, err := currencyApi.FetchCurrency(apiConfig, pair.CurrencyFrom, pair.CurrencyTo)
+		resp, err := currApi.Fetch(pair.CurrencyFrom, pair.CurrencyTo)
 		if err != nil {
-			log.Printf("[Fetch New Pair Value] | [ERROR]: %s", err.Error())
+			slog.Error("fetch new currency pair rate",
+				"error", err.Error(),
+				"pair_id", pair.ID,
+				"currency_from", pair.CurrencyFrom,
+				"currency_to", pair.CurrencyTo,
+				"old_rate", pair.Rate,
+			)
 			continue
 		}
 
-		params := models.NewCurrencyParams(pair.CurrencyFrom, pair.CurrencyTo)
-		if err := s.uc.UpdateRate(ctx, *params, resp.Data[pair.CurrencyTo]); err != nil {
-			log.Printf("[Fetch New Pair Value] | [ERROR]: %s", err.Error())
+		if err = s.currency.UpdateRate(ctx, pair.ID, resp.Data[pair.CurrencyTo]); err != nil {
+			slog.Error("fetch new currency pair rate",
+				"error", err.Error(),
+				"pair_id", pair.ID,
+				"currency_from", pair.CurrencyFrom,
+				"currency_to", pair.CurrencyTo,
+				"old_rate", pair.Rate,
+				"response_data", resp.Data[pair.CurrencyTo],
+			)
 			continue
 		}
 	}

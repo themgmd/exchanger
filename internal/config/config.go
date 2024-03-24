@@ -1,105 +1,56 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-	"os"
+	"fmt"
+	"github.com/caarlos0/env/v6"
+	"log"
 	"sync"
 	"time"
 )
 
-const (
-	FolderPath          = "configs"
-	defaultHTTPPort     = "5023"
-	defaultPostgresPort = "5432"
-	defaultPostgresHost = "localhost"
-)
+type Config struct {
+	HTTP        HTTPConfig
+	CurrencyApi CurrencyApiConfig
+	Postgre     PostgresConfig
+}
+
+type HTTPConfig struct {
+	Host              string        `env:"HTTP_HOST"`
+	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT"`
+}
+
+type PostgresConfig struct {
+	Name        string `env:"DATABASE_NAME"`
+	User        string `env:"DATABASE_USER"`
+	Password    string `env:"DATABASE_PASSWORD"`
+	Port        int    `env:"DATABASE_PORT"`
+	Host        string `env:"DATABASE_HOST"`
+	MaxIdleConn int    `env:"MAX_IDLE_CONN"`
+	MaxOpenConn int    `env:"MAX_OPEN_CONN"`
+}
+
+func (pc PostgresConfig) DSN() string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable",
+		pc.User, pc.Password, pc.Host, pc.Port, pc.Name)
+}
+
+type CurrencyApiConfig struct {
+	Link string `env:"CURRENCY_API_LINK"`
+	Key  string `env:"CURRENCY_API_KEY"`
+}
 
 var (
-	once     sync.Once
-	instance Config
+	cfg  = &Config{}
+	once = &sync.Once{}
 )
 
-type (
-	Config struct {
-		HTTP     HTTPConfig     `mapstructure:"http"`
-		Database DatabaseConfig `mapstructure:"database"`
-		API      APIConfig      `mapstructure:"api"`
-	}
-
-	HTTPConfig struct {
-		Port    string        `mapstructure:"port"`
-		Timeout TimeoutConfig `mapstructure:"timeout"`
-	}
-
-	TimeoutConfig struct {
-		Read  time.Duration `mapstructure:"read"`
-		Write time.Duration `mapstructure:"write"`
-	}
-
-	APIConfig struct {
-		Link string `mapstructure:"link"`
-		Key  string `mapstructure:"key"`
-	}
-
-	DatabaseConfig struct {
-		Postgres PostgresConfig `mapstructure:"postgres"`
-	}
-
-	PostgresConfig struct {
-		Host     string `mapstructure:"host"`
-		Port     string `mapstructure:"port"`
-		User     string `mapstructure:"user"`
-		Name     string `mapstructure:"dbName"`
-		Password string `mapstructure:"password"`
-		SSLMode  string `mapstructure:"sslMode"`
-	}
-)
-
-func New(cfgFile string) (*Config, error) {
-	var err error
+func Get() *Config {
 	once.Do(func() {
-		setupDefaultValues()
-
-		if err = parseConfigFile(cfgFile); err != nil {
-			return
+		cfg = &Config{}
+		if err := env.Parse(cfg); err != nil {
+			log.Fatalf("error occured while parse env: %s", err.Error())
 		}
-		if err = unmarshall(&instance); err != nil {
-			return
-		}
-
-		parseEnvFile(&instance)
 	})
 
-	return &instance, nil
-}
-
-func parseConfigFile(file string) error {
-	viper.AddConfigPath(FolderPath)
-	viper.SetConfigName(file)
-
-	if err := viper.ReadInConfig(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func unmarshall(cfg *Config) error {
-	if err := viper.UnmarshalKey("http", &cfg.HTTP); err != nil {
-		return err
-	}
-	if err := viper.UnmarshalKey("api", &cfg.API); err != nil {
-		return err
-	}
-	return viper.UnmarshalKey("database", &cfg.Database)
-}
-
-func parseEnvFile(cfg *Config) {
-	cfg.Database.Postgres.Password = os.Getenv("DB_POSTGRES_PASSWORD")
-	cfg.API.Key = os.Getenv("EXCHANGE_API_KEY")
-}
-
-func setupDefaultValues() {
-	viper.SetDefault("http.port", defaultHTTPPort)
-	viper.SetDefault("database.postgres.host", defaultPostgresHost)
-	viper.SetDefault("database.postgres.port", defaultPostgresPort)
+	return cfg
 }
